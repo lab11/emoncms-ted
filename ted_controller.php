@@ -36,44 +36,50 @@ function check_device_key ($devicekey) {
 function ted_controller() {
     global $mysqli, $redis, $user, $session, $route, $feed_settings;
 
-    // Need to get the POST body
-    $post = file_get_contents("php://input");
 
-    // Look for an activation POST
-    if (startsWith($post, '<ted5000Activation>')) {
-        // Get the gateway and unique values
-        $gateway = extract_value($post, '<Gateway>', '</Gateway>');
-        $unique = extract_value($post, '<Unique>', '</Unique>');
+    // Start by filtering by request path
+    if ($route->action == 'post' && $route->format == 'text') {
 
-        // Make sure this is permitted and that the user set up the device
-        // in emoncms.
-        $session = check_device_key($unique);
+        // Need to get the POST body
+        $post = file_get_contents("php://input");
 
-        // Need to get values for the response
-        if (isset($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
-            $server = server('HTTP_X_FORWARDED_SERVER');
+        // Look for an activation POST
+        if (startsWith($post, '<ted5000Activation>')) {
+            // Get the gateway and unique values
+            $gateway = extract_value($post, '<Gateway>', '</Gateway>');
+            $unique = extract_value($post, '<Unique>', '</Unique>');
+
+            // Make sure this is permitted and that the user set up the device
+            // in emoncms.
+            $session = check_device_key($unique);
+
+            // Need to get values for the response
+            if (isset($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
+                $server = server('HTTP_X_FORWARDED_SERVER');
+            } else {
+                $server = server('HTTP_HOST');
+            }
+            $url = server('SCRIPT_NAME');
+
+            $result = '<ted5000ActivationResponse>' .
+            "<PostServer>$server</PostServer>" .
+            '<UseSSL>F</UseSSL>' .
+            '<PostPort>80</PostPort>' .
+            "<PostURL>$url</PostURL>" .
+            "<AuthToken>$unique</AuthToken>" .
+            '<PostRate>1</PostRate>' .
+            '<HighPrec>T</HighPrec>' .
+            '</ted5000ActivationResponse>';
+        
+        } else if (startsWith($post, '<ted5000 ')) {
+            // Got data POST
+
+            $result = 'data';
+
         } else {
-            $server = server('HTTP_HOST');
+            $result = 'Unknown';
         }
-        $url = server('SCRIPT_NAME');
 
-        $result = '<ted5000ActivationResponse>' .
-        "<PostServer>$server</PostServer>" .
-        '<UseSSL>F</UseSSL>' .
-        '<PostPort>80</PostPort>' .
-        "<PostURL>$url</PostURL>" .
-        "<AuthToken>$unique</AuthToken>" .
-        '<PostRate>1</PostRate>' .
-        '<HighPrec>T</HighPrec>' .
-        '</ted5000ActivationResponse>';
-    
-    } else if (startsWith($post, '<ted5000 ')) {
-        // Got data POST
-
-        $result = 'data';
-
-    } else {
-        $result = 'Unknown';
     }
 
 
