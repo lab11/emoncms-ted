@@ -120,7 +120,7 @@ function ted_controller() {
             if (!$validate_access['success']) {
                 header($_SERVER["SERVER_PROTOCOL"]." 401 Unauthorized");
                 header('WWW-Authenticate: Bearer realm="Device KEY", error="invalid_nodeid", error_description="Invalid node"');
-                print "Invalid node($nodeid) for that device key($unique)".$validate_access['message'];
+                print "Invalid node($nodeid) for that device key($unique)".$validate_access['message'].$dbinputs[$nodeid];
                 exit();
             }
 
