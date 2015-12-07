@@ -32,6 +32,30 @@ function check_device_key ($devicekey) {
     return $session;
 }
 
+function extract_mtu ($xml) {
+
+    $values = array();
+    $remaining = $xml;
+
+    while (True) {
+        // Verify we still have an MTU to find
+        $pos = strpos($remaining, '<MTU');
+        if ($pos === False) {
+            break;
+        }
+
+        $mtu = extract_value($remaining, '<MTU', '</MTU>');
+        $mtuid = extract_value($mtu, 'ID=', ' ');
+        $watts = extract_value($mtu, 'watts="', '"');
+        $values[$mtuid] = $watts;
+
+        // Setup remaining for next iteration
+        $remaining = substr($remaining, $pos+strlen($mtu), strlen($remaining)-$pos-strlen($mtu));
+    }
+
+    return $values;
+}
+
 
 function ted_controller() {
     global $mysqli, $redis, $user, $session, $route, $feed_settings;
@@ -65,7 +89,7 @@ function ted_controller() {
             "<PostServer>$server</PostServer>" .
             '<UseSSL>F</UseSSL>' .
             '<PostPort>80</PostPort>' .
-            "<PostURL>$url</PostURL>" .
+            '<PostURL>/ted/post.text</PostURL>' .
             "<AuthToken>$unique</AuthToken>" .
             '<PostRate>1</PostRate>' .
             '<HighPrec>T</HighPrec>' .
@@ -73,14 +97,38 @@ function ted_controller() {
         
         } else if (startsWith($post, '<ted5000 ')) {
             // Got data POST
+            $gateway = extract_value($post, 'GWID="', '"');
+            $nodeid = extract_value($post, 'auth="', '"');
 
-            $result = 'data';
+            // Make sure we can save this data.
+            $session = check_device_key($unique);
+            if ($session['noteid'] != $nodeid) {
+                header($_SERVER["SERVER_PROTOCOL"]." 401 Unauthorized");
+                header('WWW-Authenticate: Bearer realm="Device KEY", error="invalid_nodeid", error_description="Invalid node"');
+                print "Invalid node for that device key";
+                exit();
+            }
+
+            $values = extract_mtu($post);
+
+            $result = $values;
 
         } else {
             $result = 'Unknown';
         }
 
     }
+
+
+    <ted5000 GWID="200000" auth="MySecurityToken"> <COST mrd="15" fixed="10.00" min="5.00"/> <DEMAND kVA="0">
+<demandCost timestamp="1338319620" peak="12.184" cost="22.36"/> </DEMAND>
+<MTU ID=100000 type="0">
+<cumulative timestamp="123456000" watts="10000" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456060" watts="10005" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456120" watts="10010" rate="0.12345" pf=”99.9”/>
+  </MTU>
+  <MTU ID=100001 type="0">
+<cumulative timestamp="123456000" watts="10000" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456060" watts="10005" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456120" watts="10010" rate="0.12345" pf=”99.9”/>
+  </MTU>
+</ted5000>
 
 
 
