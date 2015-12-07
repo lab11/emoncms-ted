@@ -120,15 +120,15 @@ function ted_controller() {
     }
 
 
-    <ted5000 GWID="200000" auth="MySecurityToken"> <COST mrd="15" fixed="10.00" min="5.00"/> <DEMAND kVA="0">
-<demandCost timestamp="1338319620" peak="12.184" cost="22.36"/> </DEMAND>
-<MTU ID=100000 type="0">
-<cumulative timestamp="123456000" watts="10000" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456060" watts="10005" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456120" watts="10010" rate="0.12345" pf=”99.9”/>
-  </MTU>
-  <MTU ID=100001 type="0">
-<cumulative timestamp="123456000" watts="10000" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456060" watts="10005" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456120" watts="10010" rate="0.12345" pf=”99.9”/>
-  </MTU>
-</ted5000>
+//     <ted5000 GWID="200000" auth="MySecurityToken"> <COST mrd="15" fixed="10.00" min="5.00"/> <DEMAND kVA="0">
+// <demandCost timestamp="1338319620" peak="12.184" cost="22.36"/> </DEMAND>
+// <MTU ID=100000 type="0">
+// <cumulative timestamp="123456000" watts="10000" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456060" watts="10005" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456120" watts="10010" rate="0.12345" pf=”99.9”/>
+//   </MTU>
+//   <MTU ID=100001 type="0">
+// <cumulative timestamp="123456000" watts="10000" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456060" watts="10005" rate="0.12345" pf=”99.9”/> <cumulative timestamp="123456120" watts="10010" rate="0.12345" pf=”99.9”/>
+//   </MTU>
+// </ted5000>
 
 
 
