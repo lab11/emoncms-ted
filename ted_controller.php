@@ -113,6 +113,7 @@ function ted_controller() {
 
             $session = check_device_key($unique);
 
+            $userid = $session['userid'];
             $dbinputs = $input->get_inputs($session['userid']);
 
             // Make sure we can save this data.
@@ -126,6 +127,7 @@ function ted_controller() {
 
             // Get the MTU values from the POST data
             $values = extract_mtu($post);
+            $time = time();
 
             // Actually insert data
             $tmp = array();
