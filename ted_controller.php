@@ -46,7 +46,18 @@ function extract_mtu ($xml) {
 
         $mtu = extract_value($remaining, '<MTU', '</MTU>');
         $mtuid = extract_value($mtu, 'ID=', ' ');
-        $watts = extract_value($mtu, 'watts="', '"');
+        // Get first cumulative
+        $first = extract_value($mtu, '<cumulative', '/>');
+        $watthfirst = (float) extract_value($first, 'watts="', '"');
+        $timefirst = (float) extract_value($first, 'timestamp="', '"');
+        // Get second cumulative
+        $second = substr($mtu, strlen($first), strlen($mtu)-strlen($first));
+        $watthsecond = (float) extract_value($first, 'watts="', '"');
+        $timesecond = (float) extract_value($first, 'timestamp="', '"');
+
+        // Calculate watts
+        $watts = ($watthsecond - $watthfirst) / (($timesecond - $timefirst) / 3600);
+
         $values[$mtuid] = $watts;
 
         // Setup remaining for next iteration
@@ -91,7 +102,7 @@ function ted_controller() {
             '<PostPort>80</PostPort>' .
             '<PostURL>/ted/post.text</PostURL>' .
             "<AuthToken>$unique</AuthToken>" .
-            '<PostRate>1</PostRate>' .
+            '<PostRate>2</PostRate>' .
             '<HighPrec>T</HighPrec>' .
             '</ted5000ActivationResponse>';
         
