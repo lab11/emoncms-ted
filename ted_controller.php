@@ -100,6 +100,17 @@ function ted_controller() {
             $nodeid = extract_value($post, 'GWID="', '"');
             $unique = extract_value($post, 'auth="', '"');
 
+            // Setup variable we need to insert data
+            // Need to get correct files so that we can make inputs
+            require_once "Modules/feed/feed_model.php";
+            $feed = new Feed($mysqli, $redis, $feed_settings);
+
+            require_once "Modules/input/input_model.php";
+            $input = new Input($mysqli, $redis, $feed);
+
+            require_once "Modules/process/process_model.php";
+            $process = new Process($mysqli, $input, $feed, $user->get_timezone($session['userid']));
+
             // Make sure we can save this data.
             $session = check_device_key($unique);
 
@@ -116,17 +127,6 @@ function ted_controller() {
 
             // Get the MTU values from the POST data
             $values = extract_mtu($post);
-
-            // Setup variable we need to insert data
-            // Need to get correct files so that we can make inputs
-            require_once "Modules/feed/feed_model.php";
-            $feed = new Feed($mysqli, $redis, $feed_settings);
-
-            require_once "Modules/input/input_model.php";
-            $input = new Input($mysqli, $redis, $feed);
-
-            require_once "Modules/process/process_model.php";
-            $process = new Process($mysqli, $input, $feed, $user->get_timezone($session['userid']));
 
             // Actually insert data
             $tmp = array();
