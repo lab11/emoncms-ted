@@ -56,11 +56,14 @@ function extract_mtu ($xml) {
         $timesecond = (float) extract_value($second, 'timestamp="', '"');
 
         // Calculate watts
-        $watts = ($watthsecond - $watthfirst) / (($timesecond - $timefirst) / 3600);
+        // Make sure that we actually get enough data
+        if (strlen($first) > 20 && strlen($second) > 20) {
+            $watts = ($watthsecond - $watthfirst) / (($timesecond - $timefirst) / 3600);
 
-        // Save the finding
-        $name = 'MTU' . $mtuid;
-        $values[$name] = $watts;
+            // Save the finding
+            $name = 'MTU' . $mtuid;
+            $values[$name] = $watts;
+        }
 
         // Setup remaining for next iteration
         $remaining = substr($remaining, $pos+strlen($mtu), strlen($remaining)-$pos-strlen($mtu));
