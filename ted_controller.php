@@ -97,8 +97,8 @@ function ted_controller() {
         
         } else if (startsWith($post, '<ted5000 ')) {
             // Got data POST
-            $gateway = extract_value($post, 'GWID="', '"');
-            $nodeid = extract_value($post, 'auth="', '"');
+            $nodeid = extract_value($post, 'GWID="', '"');
+            $unique = extract_value($post, 'auth="', '"');
 
             // Make sure we can save this data.
             $session = check_device_key($unique);
