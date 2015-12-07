@@ -102,16 +102,65 @@ function ted_controller() {
 
             // Make sure we can save this data.
             $session = check_device_key($unique);
-            if ($session['nodeid'] != $nodeid) {
+
+            $dbinputs = $input->get_inputs($session['userid']);
+
+            // Make sure we can do this. Copied from input_controller.php
+            $validate_access = $input->validate_access($dbinputs, $nodeid);
+            if (!$validate_access['success']) {
                 header($_SERVER["SERVER_PROTOCOL"]." 401 Unauthorized");
                 header('WWW-Authenticate: Bearer realm="Device KEY", error="invalid_nodeid", error_description="Invalid node"');
                 print "Invalid node for that device key";
                 exit();
             }
 
+            // Get the MTU values from the POST data
             $values = extract_mtu($post);
 
-            $result = http_build_query($values, '', ', ');
+            // Setup variable we need to insert data
+            // Need to get correct files so that we can make inputs
+            require_once "Modules/feed/feed_model.php";
+            $feed = new Feed($mysqli, $redis, $feed_settings);
+
+            require_once "Modules/input/input_model.php";
+            $input = new Input($mysqli, $redis, $feed);
+
+            require_once "Modules/process/process_model.php";
+            $process = new Process($mysqli, $input, $feed, $user->get_timezone($session['userid']));
+
+            // Actually insert data
+            $tmp = array();
+            foreach ($values as $name => $value) {
+                $name = 'MTU' . $name;
+
+                // Check if this is an existing field in this node or not
+                if (!isset($dbinputs[$nodeid][$name])) {
+                    // New field.
+                    $inputid = $input->create_input($userid, $nodeid, $name);
+                    $dbinputs[$nodeid][$name] = true;
+                    $dbinputs[$nodeid][$name] = array('id'=>$inputid, 'processList'=>'');
+                    $input->set_timevalue($dbinputs[$nodeid][$name]['id'], $time, $value);
+                } else {
+                    // Existing field, just insert
+                    $input->set_timevalue($dbinputs[$nodeid][$name]['id'], $time, $value);
+
+                    // If there are processes listening to this field, we need
+                    // to pass the data to those as well
+                    if ($dbinputs[$nodeid][$name]['processList']) {
+                        $tmp[] = array('value'=>$value,
+                                       'processList'=>$dbinputs[$nodeid][$name]['processList'],
+                                       'opt'=>array('sourcetype'=>"WATTSUP",
+                                                    'sourceid'=>$dbinputs[$nodeid][$name]['id']));
+                    }
+                }
+            }
+
+            // Actually insert all of the data to the process
+            foreach ($tmp as $i) {
+                $process->input($time, $i['value'], $i['processList'], $i['opt']);
+            }
+
+            $result = 'ok';
 
         } else {
             $result = 'Unknown';
