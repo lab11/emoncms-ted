@@ -127,15 +127,14 @@ function ted_controller() {
             require_once "Modules/process/process_model.php";
             $process = new Process($mysqli, $input, $feed, $user->get_timezone($userid));
 
-            
+            // Fetch the known inputs from the database
             $dbinputs = $input->get_inputs($userid);
 
             // Make sure we can save this data.
-            $validate_access = $input->validate_access($dbinputs, $nodeid);
-            if (!$validate_access['success']) {
+            if ($nodeid != $session['nodeid']) {
                 header($_SERVER["SERVER_PROTOCOL"]." 401 Unauthorized");
                 header('WWW-Authenticate: Bearer realm="Device KEY", error="invalid_nodeid", error_description="Invalid node"');
-                print "Invalid node($nodeid) for that device key($unique)".$validate_access['message'].$dbinputs[$nodeid];
+                print "Invalid node($nodeid) for that device key($unique)";
                 exit();
             }
 
