@@ -45,20 +45,22 @@ function extract_mtu ($xml) {
         }
 
         $mtu = extract_value($remaining, '<MTU', '</MTU>');
-        $mtuid = extract_value($mtu, 'ID=', ' ');
+        $mtuid = extract_value($mtu, 'ID="', '"');
         // Get first cumulative
         $first = extract_value($mtu, '<cumulative', '/>');
         $watthfirst = (float) extract_value($first, 'watts="', '"');
         $timefirst = (float) extract_value($first, 'timestamp="', '"');
         // Get second cumulative
         $second = substr($mtu, strlen($first), strlen($mtu)-strlen($first));
-        $watthsecond = (float) extract_value($first, 'watts="', '"');
-        $timesecond = (float) extract_value($first, 'timestamp="', '"');
+        $watthsecond = (float) extract_value($second, 'watts="', '"');
+        $timesecond = (float) extract_value($second, 'timestamp="', '"');
 
         // Calculate watts
         $watts = ($watthsecond - $watthfirst) / (($timesecond - $timefirst) / 3600);
 
-        $values[$mtuid] = $watts;
+        // Save the finding
+        $name = 'MTU' . $mtuid;
+        $values[$name] = $watts;
 
         // Setup remaining for next iteration
         $remaining = substr($remaining, $pos+strlen($mtu), strlen($remaining)-$pos-strlen($mtu));
@@ -111,6 +113,9 @@ function ted_controller() {
             $nodeid = extract_value($post, 'GWID="', '"');
             $unique = extract_value($post, 'auth="', '"');
 
+            $session = check_device_key($unique);
+            $userid = $session['userid'];
+
             // Setup variable we need to insert data
             // Need to get correct files so that we can make inputs
             require_once "Modules/feed/feed_model.php";
@@ -120,12 +125,10 @@ function ted_controller() {
             $input = new Input($mysqli, $redis, $feed);
 
             require_once "Modules/process/process_model.php";
-            $process = new Process($mysqli, $input, $feed, $user->get_timezone($session['userid']));
+            $process = new Process($mysqli, $input, $feed, $user->get_timezone($userid));
 
-            $session = check_device_key($unique);
-
-            $userid = $session['userid'];
-            $dbinputs = $input->get_inputs($session['userid']);
+            
+            $dbinputs = $input->get_inputs($userid);
 
             // Make sure we can save this data.
             $validate_access = $input->validate_access($dbinputs, $nodeid);
@@ -143,8 +146,6 @@ function ted_controller() {
             // Actually insert data
             $tmp = array();
             foreach ($values as $name => $value) {
-                $name = 'MTU' . $name;
-
                 // Check if this is an existing field in this node or not
                 if (!isset($dbinputs[$nodeid][$name])) {
                     // New field.
