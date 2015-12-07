@@ -9,18 +9,18 @@ function startsWith ($haystack, $needle) {
 }
 
 function extract_value ($string, $start_key, $end_key) {
-    $start_pos = strpos($post, $start_key);
-    $end_pos = strpos($post, $end_key, $start_pos+strlen($start_key));
-    $gateway = substr($post, $start_pos+strlen($start_key), $end_pos-$start_pos-strlen($start_key));
+    $start_pos = strpos($string, $start_key);
+    $end_pos = strpos($string, $end_key, $start_pos+strlen($start_key));
+    $gateway = substr($string, $start_pos+strlen($start_key), $end_pos-$start_pos-strlen($start_key));
     return $gateway;
 }
 
-function check_device_key ($dkey) {
+function check_device_key ($devicekey) {
     global $mysqli, $redis;
 
     include("Modules/device/device_model.php");
     $device = new Device($mysqli, $redis);
-    $session = $device->devicekey_session($dkey);
+    $session = $device->devicekey_session($devicekey);
     if (empty($session)) {
         header($_SERVER["SERVER_PROTOCOL"]." 401 Unauthorized");
         header('WWW-Authenticate: Bearer realm="Device KEY", error="invalid_devicekey", error_description="Invalid device key"');
