@@ -111,7 +111,7 @@ function ted_controller() {
 
             $values = extract_mtu($post);
 
-            $result = $values;
+            $result = implode(" ", $values);
 
         } else {
             $result = 'Unknown';
