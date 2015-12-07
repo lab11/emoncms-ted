@@ -111,12 +111,10 @@ function ted_controller() {
             require_once "Modules/process/process_model.php";
             $process = new Process($mysqli, $input, $feed, $user->get_timezone($session['userid']));
 
-            // Make sure we can save this data.
-            $session = check_device_key($unique);
-
             $dbinputs = $input->get_inputs($session['userid']);
 
-            // Make sure we can do this. Copied from input_controller.php
+            // Make sure we can save this data.
+            $session = check_device_key($unique);
             $validate_access = $input->validate_access($dbinputs, $nodeid);
             if (!$validate_access['success']) {
                 header($_SERVER["SERVER_PROTOCOL"]." 401 Unauthorized");
