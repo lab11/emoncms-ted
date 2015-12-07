@@ -47,7 +47,7 @@ function ted_controller() {
 
         // Make sure this is permitted and that the user set up the device
         // in emoncms.
-        $session = check_device_key($unique)
+        $session = check_device_key($unique);
 
         // Need to get values for the response
         if (isset($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
