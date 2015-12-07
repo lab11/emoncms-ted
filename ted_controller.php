@@ -102,7 +102,7 @@ function ted_controller() {
 
             // Make sure we can save this data.
             $session = check_device_key($unique);
-            if ($session['noteid'] != $nodeid) {
+            if ($session['nodeid'] != $nodeid) {
                 header($_SERVER["SERVER_PROTOCOL"]." 401 Unauthorized");
                 header('WWW-Authenticate: Bearer realm="Device KEY", error="invalid_nodeid", error_description="Invalid node"');
                 print "Invalid node for that device key";
