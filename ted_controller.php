@@ -37,7 +37,7 @@ function ted_controller() {
     global $mysqli, $redis, $user, $session, $route, $feed_settings;
 
     // Need to get the POST body
-    $post = $HTTP_RAW_POST_DATA;
+    $post = file_get_contents("php://input");
 
     // Look for an activation POST
     if (startsWith($post, '<ted5000Activation>')) {
